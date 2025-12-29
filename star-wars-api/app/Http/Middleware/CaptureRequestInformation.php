@@ -24,13 +24,21 @@ class CaptureRequestInformation
         $method = $request->method();
         $status_code = $response->getStatusCode();
         $route = $request->route()->getName();
+        $search_term = $request->query('name') ?? $request->query->get('title') ?? '';
         Log::info('Info: ', [
             'method' => $method,
             'status_code' => $status_code,
             'route' => $route,
             'duration' => $duration,
         ]);
-        ProcessRequest::dispatch(ProcessRequestData::from($method, $route, $duration, $status_code));
+        ProcessRequest::dispatch(
+            ProcessRequestData::from(
+                $method,
+                $route,
+                $duration,
+                $status_code,
+                $search_term
+            ));
         return $response;
     }
 }

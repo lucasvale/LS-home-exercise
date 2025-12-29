@@ -13,16 +13,18 @@ return new class extends Migration
             $table->timestamp('created_at')->useCurrent();
             $table->string('route', 255)->nullable();
             $table->string('method', 10)->nullable();
+            $table->string('search_term', 255)->nullable();
             $table->timestamp('measure_date')->nullable();
             $table->string('date_interval', 10)->nullable();
             $table->float('duration_sum')->nullable();
             $table->integer('ticks')->nullable();
             $table->float('average_response_time')->nullable();
 
-            $table->unique(['route', 'method', 'measure_date'], 'unique_data');
+            $table->unique(['route', 'method', 'measure_date', 'search_term'], 'unique_data');
             $table->index('route');
             $table->index('method');
             $table->index('measure_date');
+            $table->index('search_term');
             $table->index(['route', 'method'], 'route_method');
             $table->index(['route', 'method', 'measure_date'], 'route_method_measure_date');
         });

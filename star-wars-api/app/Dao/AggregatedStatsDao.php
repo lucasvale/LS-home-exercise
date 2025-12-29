@@ -14,9 +14,9 @@ class AggregatedStatsDao extends BaseDao
     public function saveAggregatedStats(array $stats): void
     {
         $this->query = "INSERT INTO aggregated_stats
-            (route, method, measure_date, date_interval, duration_sum, ticks, average_response_time)
+            (route, method, measure_date, date_interval, duration_sum, ticks, average_response_time, search_term)
             VALUES
-            (:route, :method, :measure_date, :date_interval, :duration_sum, :ticks, :average_response_time)
+            (:route, :method, :measure_date, :date_interval, :duration_sum, :ticks, :average_response_time, :search_term)";"
             ON DUPLICATE KEY UPDATE date_interval = :date_interval,
                                     duration_sum = :duration_sum,
                                     ticks = :ticks,
@@ -31,6 +31,7 @@ class AggregatedStatsDao extends BaseDao
             ':duration_sum' => $stats['duration_sum'],
             ':ticks' => $stats['ticks'],
             ':average_response_time' => $stats['average_response_time'],
+            ':search_term' => $stats['search_term'] ?? ''
         ];
 
         $this->executeQuery();
@@ -94,6 +95,24 @@ class AggregatedStatsDao extends BaseDao
             FROM aggregated_stats
             GROUP BY route, method
             ORDER BY total_clicks DESC
+            LIMIT :limit
+        ";
+
+        $this->bindings = [':limit' => $limit];
+
+        return $this->executeQuery();
+    }
+
+    public function getMostSearchedTerms(int $limit = 10): array
+    {
+        $this->query = "
+            SELECT
+                search_term,
+                SUM(ticks) as total_searches
+            FROM aggregated_stats
+            WHERE search_term IS NOT NULL AND search_term != ''
+            GROUP BY search_term
+            ORDER BY total_searches DESC
             LIMIT :limit
         ";
 

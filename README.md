@@ -135,15 +135,15 @@ The application will be available at `http://localhost:5173`
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Home page |
-| GET | `/people` | List all characters |
-| GET | `/people/{id}` | Get a specific character |
-| GET | `/films` | List all films |
-| GET | `/films/{id}` | Get a specific film |
-| GET | `/aggregated-stats` | Get aggregated statistics |
-| GET | `/processStats` | Process statistics |
+| Method | Endpoint | Description                   |
+|--------|----------|-------------------------------|
+| GET | `/` | Home page                     |
+| GET | `/people` | List all characters           |
+| GET | `/people/{id}` | Get a specific character      |
+| GET | `/films` | List all films                |
+| GET | `/films/{id}` | Get a specific film           |
+| GET | `/aggregated-stats` | Get aggregated statistics     |
+| GET | `/processStats` | Process statistics (for testing purposes only) |
 
 ---
 
