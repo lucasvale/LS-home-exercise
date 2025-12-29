@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: star-wars-mysql
+    restart: unless-stopped
+    ports:
+      - "3380:3306"
+    environment:
+      MYSQL_DATABASE: starwars
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: starwars
+      MYSQL_PASSWORD: secret
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - star-wars-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: star-wars-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - star-wars-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 3s
+      retries: 5
+
+  # Laravel API
+  api:
+    build:
+      context: ./star-wars-api
+      dockerfile: Dockerfile
+    container_name: star-wars-api
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./star-wars-api:/var/www/html
+      - /var/www/html/vendor
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: starwars
+      DB_USERNAME: starwars
+      DB_PASSWORD: secret
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: null
+      QUEUE_CONNECTION: redis
+      REDIS_QUEUE: swapi_queue
+      REDIS_QUEUE_CONNECTION: default
+      REDIS_QUEUE_RETRY_AFTER: 90
+      APP_ENV: local
+      APP_DEBUG: "true"
+      FRONT_END_URL: http://localhost:5173
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - star-wars-network
+
+  # Vue.js App
+  app:
+    build:
+      context: ./star-wars-app-vue
+      dockerfile: Dockerfile
+    container_name: star-wars-app-vue
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./star-wars-app-vue:/app
+      - /app/node_modules
+    environment:
+      VITE_API_URL: http://localhost:8000
+    depends_on:
+      - api
+    networks:
+      - star-wars-network
+
+networks:
+  star-wars-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
